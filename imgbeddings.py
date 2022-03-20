@@ -3,6 +3,7 @@ import torch
 from dataclasses import dataclass, field
 
 from transformers import CLIPProcessor, CLIPVisionModel
+from .utils import square_pad
 
 logger = logging.getLogger("imgbeddings")
 logger.setLevel(logging.INFO)
@@ -31,10 +32,17 @@ class imgbeddings:
         self.processor = CLIPProcessor.from_pretrained(
             f"openai/clip-vit-base-patch{self.patch_size}"
         )
+        # for embeddings consistancy, do not center crop
+        self.processor.feature_extractor.do_center_crop = False
 
         self.model.eval()
 
     def create_embeddings(self, inputs, num_layers=3):
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+
+        inputs = [square_pad(x) for x in inputs]
+
         image_inputs = self.processor(images=inputs, return_tensors="pt")
 
         with torch.no_grad():
