@@ -20,5 +20,6 @@ setup(
         "transformers>=4.17.0",
         # "fire>=0.3.0",
         "torch>=1.11",
+        "Pillow",
     ],
 )

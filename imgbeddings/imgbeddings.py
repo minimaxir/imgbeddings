@@ -37,17 +37,27 @@ class imgbeddings:
 
         self.model.eval()
 
-    def create_embeddings(self, inputs, num_layers=3):
+    def to_embeddings(self, inputs, num_layers=3, return_format="np"):
+        image_inputs = self.process_inputs(inputs)
+        embeddings = self.create_embeddings(image_inputs, num_layers)
+        if return_format == "np":
+            return embeddings.numpy()
+        else:
+            return embeddings
+
+    def process_inputs(self, inputs):
         if not isinstance(inputs, list):
             inputs = [inputs]
 
         inputs = [square_pad(x) for x in inputs]
 
         image_inputs = self.processor(images=inputs, return_tensors="pt")
+        return image_inputs
 
+    def create_embeddings(self, inputs, num_layers):
         with torch.no_grad():
             outputs = self.model(
-                **image_inputs, output_attentions=True, output_hidden_states=True
+                **inputs, output_attentions=True, output_hidden_states=True
             )
 
         hidden_states = torch.sum(
