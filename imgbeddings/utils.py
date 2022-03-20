@@ -30,26 +30,28 @@ def symmetric_img_aug(img, r_shift, r_degrees, buffer, background_color):
     for func in funcs:
         img = func(img).enhance(uniform(1.0 - r_shift, 1.0 + r_shift))
 
-    # apply padding before rotation
-    width, height = img.size
+    if r_degrees > 0:
+        # apply padding before rotation
+        width, height = img.size
 
-    width_b = int(width * buffer)
-    height_b = int(height * buffer)
-    img_b = Image.new(img.mode, (width_b, height_b), background_color)
-    offset = ((width_b - width) // 2, (height_b - height) // 2)
-    img_b.paste(img, offset)
-    img_b = img_b.rotate(uniform(0.0 - r_degrees, 0.0 + r_degrees))
+        width_b = int(width * buffer)
+        height_b = int(height * buffer)
+        img_b = Image.new(img.mode, (width_b, height_b), background_color)
+        offset = ((width_b - width) // 2, (height_b - height) // 2)
+        img_b.paste(img, offset)
+        img_b = img_b.rotate(uniform(0.0 - r_degrees, 0.0 + r_degrees))
 
-    # identify what areas do not match the background color
-    # to see where to crop
-    img_b_array = np.array(img_b)
-    nonblack_array = (img_b_array != background_color).all(axis=2)
-    idx = np.where(nonblack_array)
+        # identify what areas do not match the background color
+        # to see where to crop
+        img_b_array = np.array(img_b)
+        nonbg_array = (img_b_array != background_color).all(axis=2)
+        idx = np.where(nonbg_array)
 
-    left_crop = np.min(idx[1])
-    right_crop = np.max(idx[1])
-    top_crop = np.min(idx[0])
-    bottom_crop = np.max(idx[0])
-    img_b = img_b.crop((left_crop, top_crop, right_crop, bottom_crop))
+        left_crop = np.min(idx[1])
+        right_crop = np.max(idx[1])
+        top_crop = np.min(idx[0])
+        bottom_crop = np.max(idx[0])
+        img_b = img_b.crop((left_crop, top_crop, right_crop, bottom_crop))
 
-    return img_b
+        return img_b
+    return img
