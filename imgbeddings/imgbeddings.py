@@ -15,13 +15,6 @@ class imgbeddings:
     model: CLIPVisionModel = field(init=False)
     processor: CLIPProcessor = field(init=False)
 
-    r_brightness: float = 0.2
-    r_contrast: float = 0.2
-    r_saturation: float = 0.2
-    r_hue: float = 0.01
-    r_degrees: int = 15
-    r_scale: float = 0.10
-
     def __post_init__(self):
         patch_values = [14, 16, 32]
         assert self.patch_size in patch_values, f"patch_size must be in {patch_values}."
