@@ -21,5 +21,6 @@ setup(
         # "fire>=0.3.0",
         "torch>=1.11",
         "Pillow",
+        "tqdm",
     ],
 )

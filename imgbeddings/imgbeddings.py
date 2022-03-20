@@ -1,8 +1,10 @@
 import logging
-import torch
 from dataclasses import dataclass, field
 
 from transformers import CLIPProcessor, CLIPVisionModel
+import numpy as np
+import torch
+from tqdm.auto import tqdm
 from .utils import square_pad
 
 logger = logging.getLogger("imgbeddings")
@@ -30,13 +32,37 @@ class imgbeddings:
 
         self.model.eval()
 
-    def to_embeddings(self, inputs, num_layers=3, return_format="np"):
-        image_inputs = self.process_inputs(inputs)
-        embeddings = self.create_embeddings(image_inputs, num_layers)
-        if return_format == "np":
-            return embeddings.numpy()
+    def to_embeddings(self, inputs, num_layers=3, batch_size=64, return_format="np"):
+        # if doing a small batch, run as normal, else need to run iteratively
+        if len(inputs) < batch_size:
+            image_inputs = self.process_inputs(inputs)
+            embeddings = self.create_embeddings(image_inputs, num_layers)
+            if return_format == "np":
+                return embeddings.numpy()
+            else:
+                return embeddings
         else:
-            return embeddings
+            logging.info(f"Creating image embeddings in batches of {batch_size}.")
+
+            # https://stackoverflow.com/a/8290508
+            def batch(iterable, n=1):
+                length = len(iterable)
+                for ndx in range(0, length, n):
+                    yield iterable[ndx : min(ndx + n, length)]
+
+            embeddings = []
+            pbar = tqdm(total=len(inputs), smoothing=0)
+            for input_batch in batch(inputs, batch_size):
+                image_inputs = self.process_inputs(input_batch)
+                embeddings = self.create_embeddings(image_inputs, num_layers)
+                pbar.update(batch_size)
+
+            pbar.close()
+            embeddings = np.vstack(embeddings)
+            if return_format == "np":
+                return embeddings.numpy()
+            else:
+                return torch.as_tensor(embeddings)
 
     def process_inputs(self, inputs):
         if not isinstance(inputs, list):
