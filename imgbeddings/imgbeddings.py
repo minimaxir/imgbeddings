@@ -33,6 +33,9 @@ class imgbeddings:
         self.model.eval()
 
     def to_embeddings(self, inputs, num_layers=3, batch_size=64, return_format="np"):
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+
         # if doing a small batch, run as normal, else need to run iteratively
         if len(inputs) < batch_size:
             image_inputs = self.process_inputs(inputs)
@@ -65,9 +68,6 @@ class imgbeddings:
                 return torch.as_tensor(embeddings)
 
     def process_inputs(self, inputs):
-        if not isinstance(inputs, list):
-            inputs = [inputs]
-
         inputs = [square_pad(x) for x in inputs]
 
         image_inputs = self.processor(images=inputs, return_tensors="pt")
@@ -92,8 +92,8 @@ class imgbeddings:
 
         # the first value corresponds to the class token which is irrelevant
         attentions_reweighted[:, 0] = 0.0
-        attentions_reweighted = attentions_reweighted / torch.sum(
-            attentions_reweighted, 1
+        attentions_reweighted = attentions_reweighted / torch.unsqueeze(
+            torch.sum(attentions_reweighted, 1), 1
         )
 
         embeddings = hidden_states * attentions_reweighted.unsqueeze(2)

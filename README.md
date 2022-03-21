@@ -4,6 +4,10 @@ A Python package to generate embedding vectors from images, using OpenAI's robus
 
 Additionally, imgbeddings offers features to allow you to construct a custom principal component analysis (PCA) to reduce the dimensionality of those embeddings while maintaining similar performance, allows the embeddings to be more resilient to suboptimal image inputs, aligns the embeddings to a specific domain, and also potentially debiases some of the systemic biases from the source dataset.
 
+## Usage
+
+Note that CLIP was trained on square images only, and imgbeddings will pad and resize rectangular images into a square (imgbeddings deliberately does not center crop). As a result, images too wide/tall (e.g. more than a 3:1 ratio of largest dimension to smallest) will not generate robust embeddings.
+
 ## Ethics
 
 The official paper for CLIP explicitly notes that there are inherent biases in the finished model, and that CLIP shouldn't be used in production applications as a result. My perspective is that having better tools free-and-open-source to _detect_ such issues and make it more transparent is an overall good, especially since there are less-public ways to create image embeddings that aren't as accessible.
