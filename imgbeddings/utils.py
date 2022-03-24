@@ -1,4 +1,5 @@
 from random import uniform, shuffle
+import os
 
 from PIL import Image, ImageEnhance
 import numpy as np
@@ -69,8 +70,8 @@ def symmetric_img_aug(
 
 def create_session_for_provider(model_path, provider="CPUExecutionProvider"):
     options = SessionOptions()
-    options.intra_op_num_threads = 1
+    options.intra_op_num_threads = os.cpu_count()
     options.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
-    session = InferenceSession(str(model_path), options, providers=[provider])
+    session = InferenceSession(model_path, options, providers=[provider])
     session.disable_fallback()
     return session

@@ -22,5 +22,6 @@ setup(
         "onnxruntime>=1.10.0",
         "Pillow",
         "tqdm",
+        "scikit-learn",
     ],
 )
