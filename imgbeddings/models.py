@@ -12,7 +12,7 @@ from typing import Mapping, OrderedDict
 from transformers.onnx import OnnxConfig
 
 
-def export_clip_vision_to_onnx(patch_size, opset):
+def export_clip_vision_to_onnx(patch_size=32, opset=15, num_layers=3):
     """Exports the specified CLIPVision model to ONNX"""
 
     model_ckpt = f"openai/clip-vit-base-patch{patch_size}"
@@ -22,6 +22,7 @@ def export_clip_vision_to_onnx(patch_size, opset):
 
     processor = AutoFeatureExtractor.from_pretrained(model_ckpt, return_tensors="np")
     base_model = CLIPVisionModel.from_pretrained(model_ckpt, config=config)
+    base_model = base_model.eval()
 
     class ExportModel(PreTrainedModel):
         """A wrapper class around CLIPVisionModel to export to ONNX correctly."""
@@ -40,16 +41,8 @@ def export_clip_vision_to_onnx(patch_size, opset):
         ):
 
             out = self.model(pixel_values)
-            return {
-                "last_hidden_state": out["last_hidden_state"],
-                "pooler_output": out["pooler_output"],
-                "hidden_states": torch.transpose(
-                    torch.stack(list(out["hidden_states"])), 1, 0
-                ),
-                "attentions": torch.transpose(
-                    torch.stack(list(out["attentions"])), 1, 0
-                ),
-            }
+            embeddings = get_embeddings_from_output(out, num_layers)
+            return {"embeddings": embeddings}
 
         def call(
             self,
@@ -70,10 +63,7 @@ def export_clip_vision_to_onnx(patch_size, opset):
         def outputs(self) -> Mapping[str, Mapping[int, str]]:
             return OrderedDict(
                 [
-                    ("last_hidden_state", {0: "batch"}),
-                    ("pooler_output", {0: "batch"}),
-                    ("hidden_states", {0: "batch"}),
-                    ("attentions", {0: "batch"}),
+                    ("embeddings", {0: "batch"}),
                 ]
             )
 
@@ -86,3 +76,26 @@ def export_clip_vision_to_onnx(patch_size, opset):
     )
 
     return
+
+
+def get_embeddings_from_output(outputs, num_layers):
+
+    hidden_states = torch.sum(
+        torch.stack([outputs.hidden_states[i] for i in range(-num_layers, 0)]), 0
+    )
+
+    attentions = torch.stack([outputs.attentions[i] for i in range(-num_layers, 0)])
+    # switch dimensions so batch dimension is first
+    attentions = torch.transpose(attentions, 1, 0)
+
+    attentions_reduced = torch.mean(attentions, (1, 2, 3))
+    attentions_reweighted = attentions_reduced
+
+    # the first value corresponds to the class token which is irrelevant
+    attentions_reweighted[:, 0] = 0.0
+    attentions_reweighted = attentions_reweighted / torch.unsqueeze(
+        torch.sum(attentions_reweighted, 1), 1
+    )
+
+    embeddings = hidden_states * attentions_reweighted.unsqueeze(2)
+    return embeddings.sum(1)
