@@ -3,16 +3,21 @@
 # to create the models for generating embeddings, and can be
 # used to create a variant if needed.
 
+import os
+from typing import Mapping, OrderedDict
+
 import torch
 from transformers.modeling_utils import PreTrainedModel
 from pathlib import Path
 from transformers.onnx import export
 from transformers import AutoFeatureExtractor, CLIPVisionModel, CLIPVisionConfig
-from typing import Mapping, OrderedDict
 from transformers.onnx import OnnxConfig
+from onnxruntime.quantization import quantize_dynamic, QuantType
 
 
-def export_clip_vision_to_onnx(patch_size=32, opset=15, num_layers=3):
+def export_clip_vision_to_onnx(
+    output_folder, patch_size=32, opset=15, num_layers=3, remove_nonquantized=True
+):
     """Exports the specified CLIPVision model to ONNX"""
 
     model_ckpt = f"openai/clip-vit-base-patch{patch_size}"
@@ -69,11 +74,16 @@ def export_clip_vision_to_onnx(patch_size=32, opset=15, num_layers=3):
 
     new_model = ExportModel()
     onnx_config = CLIPVisionOnnxConfig(config)
-    onnx_path = Path("/Users/maxwoolf/Desktop/imgbeddings-test/model.onnx")
+    onnx_path = os.path.join(output_folder, "model.onnx")
 
-    onnx_inputs, onnx_outputs = export(
-        processor, new_model, onnx_config, opset, onnx_path
-    )
+    _, _ = export(processor, new_model, onnx_config, opset, Path(onnx_path))
+
+    onnx_quant_path = os.path.join(output_folder, "model.quant.onnx")
+    quantize_dynamic(onnx_path, onnx_quant_path, weight_type=QuantType.QUInt8)
+
+    if remove_nonquantized:
+        os.remove(onnx_path)
+        os.remove(os.path.join(output_folder, "model-opt.onnx"))
 
     return
 
