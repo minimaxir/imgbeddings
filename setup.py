@@ -19,7 +19,7 @@ setup(
     install_requires=[
         "transformers>=4.17.0",
         # "fire>=0.3.0",
-        "torch>=1.11",
+        "onnxruntime>=1.10.0",
         "Pillow",
         "tqdm",
     ],

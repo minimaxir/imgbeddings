@@ -2,6 +2,7 @@ from random import uniform, shuffle
 
 from PIL import Image, ImageEnhance
 import numpy as np
+from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
 
 # https://note.nkmk.me/en/python-pillow-add-margin-expand-canvas/
 
@@ -55,3 +56,12 @@ def symmetric_img_aug(img, r_shift, r_degrees, buffer, background_color):
 
         return img_b
     return img
+
+
+def create_session_for_provider(model_path, provider="CPUExecutionProvider"):
+    options = SessionOptions()
+    options.intra_op_num_threads = 1
+    options.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
+    session = InferenceSession(str(model_path), options, providers=[provider])
+    session.disable_fallback()
+    return session
