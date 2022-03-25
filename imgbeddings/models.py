@@ -20,6 +20,7 @@ def export_clip_vision_to_onnx(
 ):
     """Exports the specified CLIPVision model to ONNX"""
 
+    # model_ckpt = "google/vit-base-patch32-224-in21k"
     model_ckpt = f"openai/clip-vit-base-patch{patch_size}"
     config = CLIPVisionConfig.from_pretrained(model_ckpt)
     config.output_attentions = True
@@ -27,6 +28,7 @@ def export_clip_vision_to_onnx(
 
     processor = AutoFeatureExtractor.from_pretrained(model_ckpt, return_tensors="np")
     base_model = CLIPVisionModel.from_pretrained(model_ckpt, config=config)
+    # base_model = AutoModel.from_pretrained(model_ckpt, config=config)
     base_model = base_model.eval()
 
     class ExportModel(PreTrainedModel):
@@ -46,8 +48,9 @@ def export_clip_vision_to_onnx(
         ):
 
             out = self.model(pixel_values)
-            embeddings = get_embeddings_from_output(out, num_layers)
-            return {"embeddings": embeddings}
+            # embeddings = get_embeddings_from_output(out, num_layers)
+            # return {"embeddings": embeddings}
+            return {"embeddings": out["last_hidden_state"].mean(1)}
 
         def call(
             self,
