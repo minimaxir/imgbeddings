@@ -1,12 +1,10 @@
 from random import uniform, shuffle
-import os
 
 from PIL import Image, ImageEnhance
-import numpy as np
 from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
 
 
-def square_pad(img, background_color=None):
+def square_pad(img, background_color=(0, 0, 0)):
     """Pads a PIL image to a square, before augmentation."""
     # https://note.nkmk.me/en/python-pillow-add-margin-expand-canvas/
     width, height = img.size
@@ -29,7 +27,7 @@ def symmetric_img_aug(
     img,
     r_shift=0.75,
     r_degrees=15,
-    background_color=None,
+    background_color=(0, 0, 0),
     expand=True,
     pad_to_square=True,
 ):
@@ -67,8 +65,8 @@ def get_dominant_color(img_input):
 
 def create_session_for_provider(model_path, provider="CPUExecutionProvider"):
     options = SessionOptions()
-    options.intra_op_num_threads = os.cpu_count()
     options.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
+    options.use_deterministic_compute = True
     session = InferenceSession(model_path, options, providers=[provider])
     session.disable_fallback()
     return session
