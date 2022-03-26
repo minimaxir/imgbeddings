@@ -22,6 +22,8 @@ class imgbeddings:
     patch_size: int = 32
     version: int = 1
     pca: PCA = None
+    gpu: bool = False
+    provider: str = None
     processor: CLIPProcessor = field(init=False)
     session: InferenceSession = field(init=False)
 
@@ -29,7 +31,9 @@ class imgbeddings:
         patch_values = [14, 16, 32]
         assert self.patch_size in patch_values, f"patch_size must be in {patch_values}."
 
-        self.session = create_session_for_provider(self.model_path)
+        self.session = create_session_for_provider(
+            self.model_path, self.provider, self.gpu
+        )
 
         self.processor = CLIPProcessor.from_pretrained(
             f"openai/clip-vit-base-patch{self.patch_size}"

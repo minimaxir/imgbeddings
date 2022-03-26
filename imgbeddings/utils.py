@@ -63,7 +63,12 @@ def get_dominant_color(img_input):
     return dominant_color
 
 
-def create_session_for_provider(model_path, provider="CPUExecutionProvider"):
+def create_session_for_provider(model_path, provider, gpu):
+    if not provider:
+        if gpu:
+            provider = "CUDAExecutionProvider"
+        else:
+            provider = "CPUExecutionProvider"
     options = SessionOptions()
     options.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
     options.use_deterministic_compute = True
