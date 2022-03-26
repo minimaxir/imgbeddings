@@ -48,9 +48,9 @@ def export_clip_vision_to_onnx(
         ):
 
             out = self.model(pixel_values)
-            # embeddings = get_embeddings_from_output(out, num_layers)
-            # return {"embeddings": embeddings}
-            return {"embeddings": out["last_hidden_state"].mean(1)}
+            embeddings = get_embeddings_from_output(out, num_layers)
+            return {"embeddings": embeddings}
+            # return {"embeddings": out["last_hidden_state"].mean(1)}
 
         def call(
             self,

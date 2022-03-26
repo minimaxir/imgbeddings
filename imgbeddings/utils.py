@@ -24,7 +24,12 @@ def square_pad(pil_img, background_color=(0, 0, 0)):
 
 
 def symmetric_img_aug(
-    img, r_shift, r_degrees, buffer, background_color, buffer_rotate=True
+    img,
+    r_shift=0.75,
+    r_degrees=15,
+    buffer=1.4,
+    background_color=(0, 0, 0),
+    buffer_rotate=True,
 ):
 
     assert r_shift > 0 or r_degrees > 0, "No augmentation is specified."

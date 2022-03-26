@@ -1,5 +1,7 @@
 import logging
 from dataclasses import dataclass, field
+import random
+import itertools
 
 from transformers import CLIPProcessor
 from onnxruntime import InferenceSession
@@ -8,7 +10,7 @@ from tqdm.auto import tqdm
 from sklearn.decomposition import PCA
 from PIL import Image
 
-from .utils import square_pad, create_session_for_provider
+from .utils import square_pad, create_session_for_provider, symmetric_img_aug
 
 logger = logging.getLogger("imgbeddings")
 logger.setLevel(logging.INFO)
@@ -47,7 +49,7 @@ class imgbeddings:
                 + f"will transform imgbeddings to {self.pca.mean_.shape[0]}D."
             )
 
-    def to_embeddings(self, inputs, batch_size=64):
+    def to_embeddings(self, inputs, batch_size=64, pca_transform=True):
         if not isinstance(inputs, list):
             inputs = [inputs]
 
@@ -73,22 +75,38 @@ class imgbeddings:
 
             pbar.close()
             embeddings = np.vstack(embeddings)
-        if self.pca:
-            embeddings = self.pca.transform(embeddings)
+        if self.pca and pca_transform:
+            embeddings = self.pca_transform(embeddings)
         return embeddings
 
     def process_inputs(self, inputs):
-        for i, input in enumerate(inputs):
-            # if a filepath is provided, load as a PIL Image
-            if isinstance(input, str):
-                inputs[i] = Image.open(input)
-            inputs[i] = square_pad(inputs[i])
-
+        inputs = [square_pad(self.to_pil(x).convert("RGB")) for x in inputs]
         image_inputs = self.processor(images=inputs, return_tensors="np")
         return image_inputs
 
     def create_embeddings(self, inputs):
         return self.session.run(["embeddings"], dict(inputs))[0]
+
+    def to_pil(self, input):
+        # if a filepath is provided, load as a PIL Image
+        if isinstance(input, str):
+            input = Image.open(input)
+        return input
+
+    def augment_images(self, inputs, multiples=1, seed=-1, **kwargs):
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        if seed:
+            random.seed(seed)
+        aug_inputs = []
+        for _ in tqdm(range(multiples)):
+            new_inputs = [symmetric_img_aug(self.to_pil(x), **kwargs) for x in inputs]
+            aug_inputs.append(new_inputs)
+
+        # flatten the list
+        aug_inputs = list(itertools.chain(*aug_inputs))
+        random.shuffle(aug_inputs)
+        return aug_inputs
 
     def pca_fit(self, embeddings, out_dim=128, save_path="pca.npz"):
         self.pca = PCA(n_components=out_dim)
