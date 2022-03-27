@@ -19,6 +19,7 @@ A few miscelleneous design notes for some counterintuitive product decisions wit
 
 - CLIP is used due to its robust zero-shot nature and its ability to generalize to many domains even beyond what it was created for, as demonstrated with applications such as VQGAN + CLIP. Although the methodology to generate the embeddings would work with any Vision Transformer (ViT), many of the publically released pre-trained ViTs are trained on ImageNet only, which is not ideal.
   - Other more-explicit ViT models (Google's ViT, Microsoft's BeIT) were tested, but CLIP Vision had the best performance for this use case, subjectively. It may be worth it in the future to expand the export functionality to support arbitrary ViTs.
+- ONNX INT8 quantization results in slightly different generated embeddings than those generated from a nonquantized FLOAT32 model, but since these embeddings are compared apples-to-apples to each other it doesn't matter in practice.
 
 ## Processing
 
