@@ -4,6 +4,7 @@ import random
 import itertools
 
 from transformers import CLIPProcessor
+from huggingface_hub import hf_hub_url, cached_download
 from onnxruntime import InferenceSession
 import numpy as np
 from tqdm.auto import tqdm
@@ -18,7 +19,7 @@ logger.setLevel(logging.INFO)
 
 @dataclass
 class imgbeddings:
-    model_path: str
+    model_path: str = None
     patch_size: int = 32
     version: int = 1
     pca: PCA = None
@@ -30,6 +31,16 @@ class imgbeddings:
     def __post_init__(self):
         patch_values = [14, 16, 32]
         assert self.patch_size in patch_values, f"patch_size must be in {patch_values}."
+
+        if self.model_path is None:
+            model_filename = f"patch{self.patch_size}_v{self.version}.onnx"
+
+            config_file_url = hf_hub_url(
+                repo_id="minimaxir/imgbeddings", filename=model_filename
+            )
+            self.model_path = cached_download(
+                config_file_url, force_filename=model_filename
+            )
 
         self.session = create_session_for_provider(
             self.model_path, self.provider, self.gpu
