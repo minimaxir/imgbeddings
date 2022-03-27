@@ -5,10 +5,10 @@
 
 import os
 from typing import Mapping, OrderedDict
+from pathlib import Path
 
 import torch
 from transformers.modeling_utils import PreTrainedModel
-from pathlib import Path
 from transformers.onnx import export
 from transformers import AutoFeatureExtractor, CLIPVisionModel, CLIPVisionConfig
 from transformers.onnx import OnnxConfig
@@ -16,12 +16,21 @@ from onnxruntime.quantization import quantize_dynamic, QuantType
 
 
 def export_clip_vision_to_onnx(
-    output_folder, patch_size=32, opset=15, num_layers=3, remove_nonquantized=True
+    output_folder,
+    output_name="model.quant.onnx",
+    patch_size=32,
+    opset=15,
+    num_layers=3,
+    remove_nonquantized=True,
 ):
     """Exports the specified CLIPVision model to ONNX"""
 
-    # model_ckpt = "google/vit-base-patch32-224-in21k"
-    model_ckpt = f"openai/clip-vit-base-patch{patch_size}"
+    if patch_size in [16, 32]:
+        model_ckpt = f"openai/clip-vit-base-patch{patch_size}"
+    elif patch_size == 14:
+        model_ckpt = "openai/clip-vit-large-patch14"
+    else:
+        AssertionError
     config = CLIPVisionConfig.from_pretrained(model_ckpt)
     config.output_attentions = True
     config.output_hidden_states = True
@@ -81,7 +90,7 @@ def export_clip_vision_to_onnx(
 
     _, _ = export(processor, new_model, onnx_config, opset, Path(onnx_path))
 
-    onnx_quant_path = os.path.join(output_folder, "model.quant.onnx")
+    onnx_quant_path = os.path.join(output_folder, output_name)
     quantize_dynamic(onnx_path, onnx_quant_path, weight_type=QuantType.QUInt8)
 
     if remove_nonquantized:

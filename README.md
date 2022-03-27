@@ -10,9 +10,9 @@ Note that CLIP was trained on square images only, and imgbeddings will pad and r
 
 ## Ethics
 
-The official paper for CLIP explicitly notes that there are inherent biases in the finished model, and that CLIP shouldn't be used in production applications as a result. My perspective is that having better tools free-and-open-source to _detect_ such issues and make it more transparent is an overall good, especially since there are less-public ways to create image embeddings that aren't as accessible.
+The official paper for CLIP explicitly notes that there are inherent biases in the finished model, and that CLIP shouldn't be used in production applications as a result. My perspective is that having better tools free-and-open-source to _detect_ such issues and make it more transparent is an overall good, especially since there are less-public ways to create image embeddings that aren't as accessible. At the least, this package doesn't do anything that wasn't already available when CLIP was open-sourced in January 2021.
 
-If you do use imgbeddings for your own project, I strongly recommend both fitting your own PCA instead of using the raw embeddings and doing a strong QA pass along a diverse set of images for your application.
+If you do use imgbeddings for your own project, I recommend doing a strong QA pass along a diverse set of inputs for your application, which is something you should always be doing whenever you work with machine learning, biased models or not.
 
 imgbeddings is not responsible for malicious misuse of image embeddings.
 
@@ -20,6 +20,8 @@ imgbeddings is not responsible for malicious misuse of image embeddings.
 
 - CLIP is used due to its robust zero-shot nature and its ability to generalize to many domains even beyond what it was created for, as demonstrated with applications such as VQGAN + CLIP. Although the methodology to generate the embeddings would work with any Vision Transformer (ViT), many of the publically released pre-trained ViTs are trained on ImageNet only, which is not ideal.
 - This package only works with image data intentionally as opposed to leveraging CLIP's ability to link image and text. For downstream tasks, using your own text in conjunction with an image will likely give better results. (e.g. if training a model on an image embeddings + text embeddings, feed both and let the model determine the relative importance of each for your use case)
+
+For more miscellaneous design notes, see [DESIGN.md](DESIGN.md).
 
 ## License
 

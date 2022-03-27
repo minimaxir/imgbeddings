@@ -3,3 +3,4 @@ dev/
 build/
 dist
 *.egg-info
+output.png
