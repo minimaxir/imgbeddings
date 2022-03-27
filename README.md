@@ -3,16 +3,26 @@
 A Python package to generate embedding vectors from images, using [OpenAI](https://openai.com)'s robust [CLIP model](https://github.com/openai/CLIP) via [Hugging Face](https://huggingface.co) [transformers](https://huggingface.co/docs/transformers/index). These image embeddings, derived from an image model that has seen the entire internet up to mid-2020, can be used for many things: unsupervised clustering (e.g. via [umap](https://umap-learn.readthedocs.io/en/latest/)), embeddings search (e.g. via [faiss](https://github.com/facebookresearch/faiss)), and using downstream for other framework-agnostic ML/AI tasks such as building a classifier or calculating image similarity.
 
 - The [embeddings generation models](https://huggingface.co/minimaxir/imgbeddings) are ONNX INT8-quantized, meaning they're 20-30% faster on the CPU, much smaller on disk, and doesn't require PyTorch or TensorFlow as a dependency!
-- Works for many different image domains
-- Runs on a GPU, with extra speed increases on a T4/V100 due to INT8! (pass `gpu = True` when initializing)
+- Works for many different image domains thanks to CLIP's zero-shot performance.
+- Includes utilities for using [principal component analysis (PCA)](https://en.wikipedia.org/wiki/Principal_component_analysis) to reduces the dimensionality of generated embeddings without losing much info.
 
 ## Real-World Demo Notebooks
+
+![](docs/umap.png)
 
 You can read how to use imgbeddings for real-world use cases in these Jupyter Notebooks:
 
 - [Cats vs. Dogs](examples/cats_dogs.ipynb): image clustering and building a cat/dog classifier
 - [Pokémon](examples/pokemon.ipynb): most-similar image search
 - [Image Augmentation](examples/augmentation.ipynb): generated embedding resilience to altered inputs
+
+## Installation
+
+aitextgen can be installed from PyPI:
+
+```sh
+pip3 install imgbeddings
+```
 
 ## Quick Example
 
@@ -59,6 +69,10 @@ imgbeddings is not responsible for malicious misuse of image embeddings.
 - This package only works with image data intentionally as opposed to leveraging CLIP's ability to link image and text. For downstream tasks, using your own text in conjunction with an image will likely give better results. (e.g. if training a model on an image embeddings + text embeddings, feed both and let the model determine the relative importance of each for your use case)
 
 For more miscellaneous design notes, see [DESIGN.md](DESIGN.md).
+
+## See Also
+
+- [Sentence Transformers](https://sbert.net/index.html), which has a [wrapper around CLIP](https://sbert.net/examples/applications/image-search/README.html) that supports Image-to-Image search.
 
 ## License
 
