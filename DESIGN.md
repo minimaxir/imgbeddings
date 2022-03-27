@@ -10,7 +10,7 @@ A few miscelleneous design notes for some counterintuitive product decisions wit
   - Zero out the attention value of the first token. (it's the class token for CLIP, which is irrelevant here)
   - Reweight the other attention values such that they sum to 1
   - Multiply the summed hidden states for each position by the reweighted attention values, then sum up and return across all positions. This is effectively an attention-weighted average.
-  - The technical implementation is done in `get_embeddings_from_output()` at [models.py](build/lib/imgbeddings/models.py).
+  - The technical implementation is done in `get_embeddings_from_output()` at [models.py](imgbeddings/models.py).
 - Not all aspects of an image are relevant to its context. In theory, attention is an unsupervised way of identifying these relative impacts, thus an attention-weighted average can capture each patch's importance and disregard irrelevant parts of an image.
 - No, there is no research on whether this approach is mathematically sound, however it's hard to argue with the results. Please feel free to petition my alma mater to revoke my Ph.D for statistical crimes, which will be difficult as I do not have a Ph.D.
   - The exporting code is open-sourced in the package itself in case there are optimizations found, and models are versioned so users can pin them.

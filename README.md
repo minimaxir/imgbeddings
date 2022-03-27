@@ -1,6 +1,6 @@
 # imgbeddings
 
-A Python package to generate embedding vectors from images, using [OpenAI](https://openai.com)'s robust [CLIP model](https://github.com/openai/CLIP) via HuggingFace Transformers. These image embeddings, derived from an image model that has seen the entire internet up to mid-2020, can be used for many things: unsupervised clustering (e.g. via [umap](https://umap-learn.readthedocs.io/en/latest/)), embeddings search (e.g. via [faiss](https://github.com/facebookresearch/faiss)), and using downstream for other framework-agnostic ML/AI tasks.
+A Python package to generate embedding vectors from images, using [OpenAI](https://openai.com)'s robust [CLIP model](https://github.com/openai/CLIP) via HuggingFace Transformers. These image embeddings, derived from an image model that has seen the entire internet up to mid-2020, can be used for many things: unsupervised clustering (e.g. via [umap](https://umap-learn.readthedocs.io/en/latest/)), embeddings search (e.g. via [faiss](https://github.com/facebookresearch/faiss)), and using downstream for other framework-agnostic ML/AI tasks such as building a classifier or calculating image similarity.
 
 - The model is ONNX INT8-quantized, meaning it's 20-30% faster on the CPU, much smaller on disk, and doesn't require PyTorch or TensorFlow as a dependency!
 - Runs on a GPU, with extra speed increases on a T4/V100 due to INT8!
@@ -15,7 +15,36 @@ You can read how to use imgbeddings for real-world use cases in these Jupyter No
 
 ## Quick Example
 
-More formal documentation will be added soon.
+Let's say you want to generate an image embedding for a cute cat photo. First you can download the photo:
+
+```py3
+import requests
+from PIL import Image
+url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+image = Image.open(requests.get(url, stream=True).raw)
+```
+
+Then, you can load imgbeddings. By default, imgbeddings will load a 88MB model based on the patch32 variant of CLIP, which separates each image into 49 32x32 patches.
+
+```py3
+from imgbeddings import imgbeddings
+ibed = imgbeddings()
+```
+
+You can also load the patch16 model by passing `patch_size = 16` to `imgbeddings()` (more granular embeddings but takes about 3x longer to run), or the "large" patch14 model with `patch_size = 14` (3.5x model size, 3x longer than patch16).
+
+Then to generate embeddings, all you have to is pass the image to `to_embeddings()`!
+
+```py3
+embedding = ibed.to_embeddings(image)
+embedding[0][0:5] # array([ 0.914541  ,  0.45988417,  0.0350069 , -0.9054574 ,  0.08941309], dtype=float32)
+```
+
+This returns a 768D [numpy](https://numpy.org) vector for each input, which can be used for pretty much anything in the ML/AI world.
+
+You can also pass a list of filename and/or PIL Images for batch embeddings generation.
+
+See the Demo Notebooks above for more advanced parameters and real-world use cases. More formal documentation will be added soon.
 
 ## Ethics
 
