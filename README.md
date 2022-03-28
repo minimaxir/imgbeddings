@@ -70,6 +70,12 @@ imgbeddings is not responsible for malicious misuse of image embeddings.
 
 For more miscellaneous design notes, see [DESIGN.md](DESIGN.md).
 
+## Maintainer/Creator
+
+Max Woolf ([@minimaxir](https://minimaxir.com))
+
+_Max's open-source projects are supported by his [Patreon](https://www.patreon.com/minimaxir) and [GitHub Sponsors](https://github.com/sponsors/minimaxir). If you found this project helpful, any monetary contributions to the Patreon are appreciated and will be put to good creative use._
+
 ## See Also
 
 - [Sentence Transformers](https://sbert.net/index.html), which has a [wrapper around CLIP](https://sbert.net/examples/applications/image-search/README.html) that supports Image-to-Image search.
